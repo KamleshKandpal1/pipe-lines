@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Ensure this import is correct
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -8,31 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FaPen } from "react-icons/fa";
-import {
-  FaCog,
-  FaPlusCircle,
-  FaMinusCircle,
-  FaTrash,
-  FaEdit,
-} from "react-icons/fa";
-
-// JSON Data for Colors
-const colorOptions = [
-  { id: 1, name: "Red", value: "#ff0000" },
-  { id: 2, name: "Green", value: "#00ff00" },
-  { id: 3, name: "Blue", value: "#0000ff" },
-  { id: 4, name: "Yellow", value: "#ffff00" },
-  { id: 5, name: "Black", value: "#000000" },
-  { id: 6, name: "White", value: "#ffffff" },
-];
-
-// JSON Data for Icons
-const iconOptions = [
-  { id: 1, value: "plus-circle", name: "Plus Circle", component: FaPlusCircle },
-  { id: 2, value: "trash", name: "Trash", component: FaTrash },
-  { id: 3, value: "edit", name: "Edit", component: FaEdit },
-  // Add more icon options as needed
-];
+import { colorOptions, iconOptions } from "@/utils/options";
 
 export function CreateButton({
   setColor,
@@ -41,13 +17,6 @@ export function CreateButton({
   setIcon,
   setPipesData,
 }) {
-  console.log("Icon Options:", iconOptions);
-  iconOptions.forEach((option) => {
-    console.log(
-      `ID: ${option.id}, Name: ${option.name}, Value: ${option.value}`
-    );
-  });
-
   const [name, setNameState] = useState("");
   const [size, setSizeState] = useState("");
   const [color, setColorState] = useState("");
@@ -63,24 +32,25 @@ export function CreateButton({
       ...prevData,
       { pipesName: name, pipeSize: size, color: color, icon: icon },
     ]);
-    <PopoverTrigger asChild>
-      <Button className=" w-5 h-5 bg-transparent hover:bg-blue-400">
-        <FaPen className="text-sm" />
-      </Button>
-    </PopoverTrigger>;
+
+    // Reset local state
+    setNameState("");
+    setSizeState("");
+    setColorState("");
+    setIconState("");
   };
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className=" w-5 h-5 bg-transparent hover:bg-blue-400">
-          <FaPen className="text-sm" />
-        </Button>
+        <FaPen className="text-lg bg-transparent text-white hover:text-blue-500 cursor-pointer" />
+        {/* <Button className="w-5 h-5 bg-transparent hover:bg-blue-400">
+        </Button> */}
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Inputs</h4>
+            <h4 className="font-medium leading-none">Create New Pipe</h4>
           </div>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 items-center gap-4">
@@ -93,13 +63,13 @@ export function CreateButton({
               />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="size">Size</Label>
+              <Label htmlFor="size">Size (mtr)</Label>
               <Input
                 id="size"
                 type="number"
                 min="0"
                 max="10"
-                step="0.010"
+                step="0.01"
                 value={size}
                 onChange={(e) => setSizeState(e.target.value)}
                 className="col-span-2 h-8"
@@ -111,9 +81,9 @@ export function CreateButton({
                 id="color"
                 value={color}
                 onChange={(e) => setColorState(e.target.value)}
-                className="col-span-2 h-8"
+                className="col-span-2 h-8 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
-                <option>Select a color</option>
+                <option value="">Select a color</option>
                 {colorOptions.map((colorOption) => (
                   <option key={colorOption.id} value={colorOption.value}>
                     {colorOption.name}
@@ -127,9 +97,9 @@ export function CreateButton({
                 id="icon"
                 value={icon}
                 onChange={(e) => setIconState(e.target.value)}
-                className="col-span-2 h-8"
+                className="col-span-2 h-8 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
-                <option>Select an icon</option>
+                <option value="">Select an icon</option>
                 {iconOptions.map((iconOption) => (
                   <option key={iconOption.id} value={iconOption.value}>
                     {iconOption.name}
@@ -138,7 +108,9 @@ export function CreateButton({
               </select>
             </div>
           </div>
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave} className="w-full">
+            Save
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

@@ -18,7 +18,7 @@ const InputBox = () => {
   // console.log(coordinationData);
 
   return (
-    <div className="flex items-center gap-4 text-[#1f1f1f]">
+    <div className="flex items-center gap-4 text-white">
       <div className="w-1/2">
         <input
           type="number"
@@ -27,7 +27,7 @@ const InputBox = () => {
           placeholder="Latitude"
           value={coordinationData.latitude}
           onChange={handleChange}
-          className="p-1 rounded-lg outline-none"
+          className="p-1 rounded-lg outline-none bg-blue-500 text-white placeholder:text-white"
         />
       </div>
       <div className="w-1/2">
@@ -38,7 +38,7 @@ const InputBox = () => {
           placeholder="Longitude"
           value={coordinationData.longitude}
           onChange={handleChange}
-          className="p-1 rounded-lg outline-none"
+          className="p-1 rounded-lg outline-none bg-blue-500 text-white placeholder:text-white"
         />
       </div>
     </div>
