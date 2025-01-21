@@ -1,9 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import { FaChevronLeft } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaPlusCircle } from "react-icons/fa";
 
 const SheetBox = ({ setLayer }) => {
   const [panels, setPanels] = useState(false);
+  const [panelImg, setPanelImage] = useState([]);
+
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    setPanelImage(files);
+    // You can call setLayer or perform other actions with files if needed
+  };
 
   const handleToggleLayer = () => {
     setPanels((prevPanels) => !prevPanels);
@@ -18,13 +25,27 @@ const SheetBox = ({ setLayer }) => {
 
   return (
     <div
-      className={`absolute top-1/2 right-0 transition-transform duration-700 ${
+      className={`absolute top-40 right-0 transition-transform duration-700 ${
         isCollapsed ? "transform translate-x-full" : ""
       }`}
     >
       <div className="border w-40 rounded-l-xl bg-white shadow-lg relative p-4">
-        <div className="flex justify-center items-center mb-4">
-          <h1 className="text-lg font-semibold">Layers</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-semibold text-blue-500">Layers</h1>
+          <div className="text-blue-600 ">
+            <label
+              htmlFor="file-upload"
+              className="flex items-center cursor-pointer text-lg"
+            >
+              <FaPlusCircle />
+              <input
+                type="file"
+                id="file-upload"
+                hidden
+                onChange={handleFileChange}
+              />
+            </label>
+          </div>
         </div>
         <div className="mb-2 flex flex-col items-start gap-y-4">
           <div
@@ -64,15 +85,17 @@ const SheetBox = ({ setLayer }) => {
       </div>
       <button
         onClick={handleToggleLayer}
-        className={`absolute top-1/2 transform -translate-y-1/2 bg-white text-neutral-500 text-xl h-10 w-6 rounded-l-md transition-transform duration-700 ${
+        className={`absolute top-1/2 transform -translate-y-1/2 bg-white text-neutral-500 text-xl h-10 w-6 rounded-l-md transition-transform duration-700 pl-1 ${
           isCollapsed ? "right-40" : "-left-5"
         }`}
       >
-        <FaChevronLeft
-          className={`transition-transform duration-500 ${
-            isCollapsed ? "rotate-0" : "rotate-180"
-          }`}
-        />
+        {isCollapsed ? (
+          <FaEyeSlash
+            className={`transition-transform duration-500 text-lg `}
+          />
+        ) : (
+          <FaEye className={`transition-transform duration-500 text-lg `} />
+        )}
       </button>
     </div>
   );

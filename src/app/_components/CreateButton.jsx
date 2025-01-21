@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FaPen } from "react-icons/fa";
-import { colorOptions, iconOptions } from "@/utils/options";
+import { colorOptions, iconOptions, textureOptions } from "@/utils/options";
 
 export function CreateButton({
   setColor,
@@ -16,21 +16,30 @@ export function CreateButton({
   setSize,
   setIcon,
   setPipesData,
+  setTexture,
 }) {
   const [name, setNameState] = useState("");
   const [size, setSizeState] = useState("");
   const [color, setColorState] = useState("");
   const [icon, setIconState] = useState("");
+  const [texture, setTextureState] = useState("");
 
   const handleSave = () => {
     setColor(color);
     setName(name);
     setSize(size);
     setIcon(icon);
+    setTexture(texture);
 
     setPipesData((prevData) => [
       ...prevData,
-      { pipesName: name, pipeSize: size, color: color, icon: icon },
+      {
+        pipesName: name,
+        pipeSize: size,
+        color: color,
+        icon: icon,
+        texture: texture,
+      },
     ]);
 
     // Reset local state
@@ -38,6 +47,7 @@ export function CreateButton({
     setSizeState("");
     setColorState("");
     setIconState("");
+    setTextureState("");
   };
 
   return (
@@ -103,6 +113,22 @@ export function CreateButton({
                 {iconOptions.map((iconOption) => (
                   <option key={iconOption.id} value={iconOption.value}>
                     {iconOption.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="icon">Texture</Label>
+              <select
+                id="icon"
+                value={icon}
+                onChange={(e) => setTextureState(e.target.value)}
+                className="col-span-2 h-8 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select an texture</option>
+                {textureOptions.map((textureOption) => (
+                  <option key={textureOption.id} value={textureOption.material}>
+                    {textureOption.name}
                   </option>
                 ))}
               </select>

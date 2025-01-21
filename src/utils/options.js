@@ -15,3 +15,30 @@ export const colorOptions = [
   { id: 5, name: "Purple", value: "#a78bfa" },
   { id: 6, name: "Pink", value: "#f472b6" },
 ];
+
+export const textureOptions = [
+  {
+    id: 1,
+    name: "Smooth Steel Pipe",
+    material: "Steel",
+    value: "smooth_steel_pipe",
+  },
+  {
+    id: 2,
+    name: "Corrugated Metal Pipe",
+    material: "Metal",
+    value: "corrugated_metal_pipe",
+  },
+  {
+    id: 3,
+    name: "PVC Pipe",
+    material: "PVC",
+    value: "pvc_pipe",
+  },
+  {
+    id: 4,
+    name: "Rusty Iron Pipe",
+    material: "Iron",
+    value: "rusty_iron_pipe",
+  },
+];

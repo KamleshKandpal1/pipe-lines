@@ -10,11 +10,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { iconOptions, colorOptions } from "@/utils/options";
+import { iconOptions, colorOptions, textureOptions } from "@/utils/options";
 
 const SymbolBox = () => {
   const [dialogStatus, setDialogStatus] = useState(false);
   const [color, setColor] = useState("");
+  const [texture, setTexture] = useState("");
   const [pipesName, setPipesName] = useState("");
   const [icon, setIcon] = useState("");
   const [pipeSize, setPipeSize] = useState("");
@@ -68,13 +69,9 @@ const SymbolBox = () => {
           </TooltipContent>
         </Tooltip>
         {dialogStatus && (
-          <div className="absolute right-0 top-12 bg-transparent border rounded-lg shadow-2xl p-2 w-60">
+          <div className="absolute right-0 top-12 bg-[#1f1f1f7a] border rounded-lg shadow-2xl p-2 w-60">
             <div className="mb-2 flex justify-end">
               <CreateButton
-                color={color}
-                name={pipesName}
-                size={pipeSize}
-                icon={icon}
                 setColor={setColor}
                 setName={setPipesName}
                 setSize={setPipeSize}
@@ -82,13 +79,11 @@ const SymbolBox = () => {
                 setPipesData={setPipesData}
                 editingIndex={editingIndex}
                 setEditingIndex={setEditingIndex}
-                closeDialog={openDialogbox}
-                colorOptions={colorOptions}
-                iconOptions={iconOptions}
+                setTexture={setTexture}
               />
             </div>
-            <ScrollArea className="h-64 w-full rounded-md border border-gray-200">
-              <div className="p-2 space-y-2">
+            <ScrollArea className="h-64 w-full rounded-md">
+              <div className="p-1 space-y-2">
                 {pipesData.map((item, index) => {
                   const IconComponent = iconOptions.find(
                     (option) => option.value === item.icon
@@ -99,7 +94,7 @@ const SymbolBox = () => {
                       key={index}
                       className="flex items-center justify-between bg-gray-50 rounded-md p-2 transition-all duration-200 hover:bg-gray-100"
                     >
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4">
                         {IconComponent && (
                           <IconComponent
                             className="w-5 h-5"
@@ -107,11 +102,16 @@ const SymbolBox = () => {
                           />
                         )}
                         <div>
-                          <p className="font-medium text-gray-800">
+                          <p className="font-medium text-gray-800 capitalize">
                             {item.pipesName}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 font-medium">
                             {item.pipeSize} mtr
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 font-medium">
+                            {item.texture}
                           </p>
                         </div>
                       </div>
