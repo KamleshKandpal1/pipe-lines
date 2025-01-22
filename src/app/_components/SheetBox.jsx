@@ -1,89 +1,102 @@
 "use client";
 import React, { useState } from "react";
-import { FaChevronLeft, FaPen } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaPlusCircle } from "react-icons/fa";
 
-const SheetBox = () => {
-  const [right, setRight] = useState(true);
+const SheetBox = ({ setLayer }) => {
+  const [panels, setPanels] = useState(false);
+  const [panelImg, setPanelImage] = useState([]);
 
-  const handleMoveToLeft = () => {
-    setRight(!right);
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    setPanelImage(files);
+    // You can call setLayer or perform other actions with files if needed
   };
+
+  const handleToggleLayer = () => {
+    setPanels((prevPanels) => !prevPanels);
+  };
+
+  const switchLayer = (id) => {
+    setLayer(id);
+    setPanels((prevPanels) => !prevPanels);
+  };
+
+  const isCollapsed = !panels;
+
   return (
     <div
-      className={`${right ? "overflow-hidden" : ""} absolute top-56 right-0`}
+      className={`absolute top-40 right-0 transition-transform duration-700 ${
+        isCollapsed ? "transform translate-x-full" : ""
+      }`}
     >
-      <div
-        className={`${
-          right ? "-right-48 opacity-0" : "right-0 opacity-100"
-        } border w-40 h-40 rounded-l-xl bg-white relative transition-all duration-700
-           p-2 flex flex-col items-end `}
-      >
-        <h1 className="text-lg font-semibold mb-2">Options</h1>
-        <div
-          onClick={() => handleMoveToLeft(!right)}
-          className="flex my-1 gap-x-2 text-base items-center font-semibold cursor-pointer"
-        >
-          <FaPen />
-          Pen
+      <div className="border w-40 rounded-l-xl bg-white shadow-lg relative p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-semibold text-blue-500">Layers</h1>
+          <div className="text-blue-600 ">
+            <label
+              htmlFor="file-upload"
+              className="flex items-center cursor-pointer text-lg"
+            >
+              <FaPlusCircle />
+              <input
+                type="file"
+                id="file-upload"
+                hidden
+                onChange={handleFileChange}
+              />
+            </label>
+          </div>
         </div>
-        <div
-          onClick={() => handleMoveToLeft(!right)}
-          className="flex my-1 gap-x-2 text-base items-center font-semibold cursor-pointer"
-        >
-          <FaPen />
-          Pen
-        </div>
-        <div
-          onClick={() => handleMoveToLeft(!right)}
-          className="flex my-1 gap-x-2 text-base items-center font-semibold cursor-pointer"
-        >
-          <FaPen />
-          Pen
+        <div className="mb-2 flex flex-col items-start gap-y-4">
+          <div
+            className="flex gap-x-3 items-center cursor-pointer"
+            onClick={() => switchLayer(1)}
+          >
+            <img
+              src="/images/graph-paper.jpg"
+              alt="Graph"
+              className="w-[60%] rounded-lg"
+            />
+            <p className="font-medium">Graph</p>
+          </div>
+          <div
+            className="flex gap-x-3 items-center cursor-pointer"
+            onClick={() => switchLayer(2)}
+          >
+            <img
+              src="/images/map.jpg"
+              alt="Map"
+              className="w-[60%] rounded-lg"
+            />
+            <p className="font-medium">Map</p>
+          </div>
+          <div
+            className="flex gap-x-3 items-center cursor-pointer"
+            onClick={() => switchLayer(3)}
+          >
+            <img
+              src="/images/pipes.jpg"
+              alt="Map"
+              className="w-[60%] rounded-lg"
+            />
+            <p className="font-medium">Pipes</p>
+          </div>
         </div>
       </div>
       <button
-        onClick={handleMoveToLeft}
-        className={`${
-          right ? "-right-2 pr-1" : " -left-2"
-        } transition-all duration-1000 delay-75  top-1/2 transform -translate-y-1/2 absolute bg-white text-neutral-500 text-xl h-5 w-5 rotate-[-45deg] rounded-br-md`}
+        onClick={handleToggleLayer}
+        className={`absolute top-1/2 transform -translate-y-1/2 bg-white text-neutral-500 text-xl h-10 w-6 rounded-l-md transition-transform duration-700 pl-1 ${
+          isCollapsed ? "right-40" : "-left-5"
+        }`}
       >
-        <FaChevronLeft className="rotate-[45deg]" />
+        {isCollapsed ? (
+          <FaEyeSlash
+            className={`transition-transform duration-500 text-lg `}
+          />
+        ) : (
+          <FaEye className={`transition-transform duration-500 text-lg `} />
+        )}
       </button>
-      {/* <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="new">
-              <FaChevronRight className="text-sm" />
-            </Button>
-            
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Edit profile</SheetTitle>
-              <SheetDescription>
-                Make changes to your profile here. Click save when you're done.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input id="name" value="Pedro Duarte" className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
-                </Label>
-                <Input id="username" value="@peduarte" className="col-span-3" />
-              </div>
-            </div>
-            <SheetFooter>
-              <SheetClose asChild>
-                <Button type="submit">Save changes</Button>
-              </SheetClose>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet> */}
     </div>
   );
 };

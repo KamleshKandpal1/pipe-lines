@@ -5,6 +5,7 @@ const InputBox = () => {
   const [coordinationData, setCoordinationData] = useState({
     latitude: "",
     longitude: "",
+    altitude: "",
   });
 
   const handleChange = (e) => {
@@ -18,8 +19,8 @@ const InputBox = () => {
   // console.log(coordinationData);
 
   return (
-    <div className="flex items-center gap-4 text-[#1f1f1f]">
-      <div className="w-1/2">
+    <div className="flex items-center gap-4 text-white">
+      <div className="">
         <input
           type="number"
           name="latitude"
@@ -27,10 +28,10 @@ const InputBox = () => {
           placeholder="Latitude"
           value={coordinationData.latitude}
           onChange={handleChange}
-          className="p-1 rounded-lg outline-none"
+          className="py-1 pl-3 rounded-lg outline-none bg-blue-300 text-white placeholder:text-white"
         />
       </div>
-      <div className="w-1/2">
+      <div className="">
         <input
           type="number"
           name="longitude"
@@ -38,7 +39,18 @@ const InputBox = () => {
           placeholder="Longitude"
           value={coordinationData.longitude}
           onChange={handleChange}
-          className="p-1 rounded-lg outline-none"
+          className="py-1 pl-3 rounded-lg outline-none bg-blue-300 text-white placeholder:text-white"
+        />
+      </div>
+      <div className="">
+        <input
+          type="number"
+          name="altitude"
+          id="altitude"
+          placeholder="Altitude"
+          value={coordinationData.altitude}
+          onChange={handleChange}
+          className="py-1 pl-3 rounded-lg outline-none bg-blue-300 text-white placeholder:text-white"
         />
       </div>
     </div>
