@@ -2,17 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { Stage, Layer, Line, Rect, Text } from "react-konva";
 
-const GridBackground = ({ width, height, cellSize, offsetX, offsetY, padding }) => {
+const GridBackground = ({ width, height, cellSize, offsetX, offsetY }) => {
   const lines = [];
 
   // Vertical lines
   for (let i = 0; i < width + cellSize; i += cellSize) {
     const x = i - (offsetX % cellSize);
-    if (x >= padding.left && x <= width - padding.right) {
+    if (x >= 0) {
       lines.push(
         <Line
           key={`v-${x}`}
-          points={[x, padding.top, x, height - padding.bottom]}
+          points={[x, 0, x, height]}
           stroke="#ccc"
           strokeWidth={1}
         />
@@ -23,11 +23,11 @@ const GridBackground = ({ width, height, cellSize, offsetX, offsetY, padding }) 
   // Horizontal lines
   for (let i = 0; i < height + cellSize; i += cellSize) {
     const y = i - (offsetY % cellSize);
-    if (y >= padding.top && y <= height - padding.bottom) {
+    if (y >= 0) {
       lines.push(
         <Line
           key={`h-${y}`}
-          points={[padding.left, y, width - padding.right, y]}
+          points={[0, y, width, y]}
           stroke="#ccc"
           strokeWidth={1}
         />
@@ -38,7 +38,7 @@ const GridBackground = ({ width, height, cellSize, offsetX, offsetY, padding }) 
   return <>{lines}</>;
 };
 
-const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding }) => {
+const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY }) => {
   const xAxis = [];
   const yAxis = [];
   const majorTickSize = 20;
@@ -53,7 +53,7 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
     i++
   ) {
     const position = margin.left + i * cellSize - offsetX;
-    if (position < padding.left || position > width - padding.right) continue;
+    if (position < margin.left) continue;
 
     // Major Tick
     if (i % 10 === 0) {
@@ -109,7 +109,7 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
     i++
   ) {
     const position = height - margin.bottom - i * cellSize + offsetY;
-    if (position < padding.top || position > height - padding.bottom) continue;
+    if (position > height - margin.bottom) continue;
 
     // Major Tick
     if (i % 10 === 0) {
@@ -222,13 +222,6 @@ const Diagram = () => {
     bottom: 50,
   };
 
-  const padding = {
-    left: 60,
-    right: 60,
-    top: 60,
-    bottom: 60,
-  };
-
   return (
     <Stage
       width={width}
@@ -246,7 +239,6 @@ const Diagram = () => {
           cellSize={cellSize}
           offsetX={offset.x}
           offsetY={offset.y}
-          padding={padding}
         />
       </Layer>
 
@@ -259,7 +251,6 @@ const Diagram = () => {
           margin={margin}
           offsetX={offset.x}
           offsetY={offset.y}
-          padding={padding}
         />
       </Layer>
     </Stage>
