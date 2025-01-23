@@ -6,16 +6,15 @@ import Maps from "./_components/Maps.jsx";
 import SheetBox from "./_components/SheetBox.jsx";
 import SymbolBox from "./_components/SymbolBox.jsx";
 import ToolBox from "./_components/ToolBox.jsx";
-import Pipes from "./_components/Pipes.jsx";
+import UploadFile from "./_components/UploadFile.jsx";
+import Axis from "./_components/Axis.jsx";
 
 export default function Home() {
-  // Retrieve the initial value from localStorage or default to 1
   const [layer, setLayer] = useState(() => {
     const savedLayer = localStorage.getItem("layer");
     return savedLayer ? parseInt(savedLayer, 10) : 1;
   });
 
-  // Update localStorage whenever the layer changes
   useEffect(() => {
     localStorage.setItem("layer", layer);
   }, [layer]);
@@ -23,25 +22,27 @@ export default function Home() {
   return (
     <div className="flex justify-center overflow-hidden">
       <div className="relative w-full h-full">
-        {/* Conditionally render Diagram or Maps based on the layer state */}
-        {layer === 1 ? <Diagram /> : layer === 2 ? <Maps /> : <Pipes />}
+        {layer === 1 ? (
+          <Diagram />
+        ) : layer === 2 ? (
+          <div>
+            <Maps />
+          </div>
+        ) : (
+          <UploadFile />
+        )}
 
-        <div className="w-full h-auto bg-contain bg-center rounded-md absolute top-0 left-0">
-          {/* Wrapper for input box and symbol box */}
-          <div className="flex w-[90%] ml-auto items-center justify-between p-2 sm:pr-2 pr-5">
-            <div>
+        <div className="w-full absolute top-0 left-0 z-10">
+          {/* Ensure Axis doesn't block interactions */}
+          <Axis className="pointer-events-none" />
+          <div className="absolute top-0 left-0 w-full">
+            <div className="flex w-[90%] ml-auto items-center justify-between p-2 sm:pr-2 pr-5 z-20">
               <InputBox />
-            </div>
-            <div className="relative">
               <SymbolBox />
             </div>
+            <ToolBox />
+            <SheetBox setLayer={setLayer} />
           </div>
-
-          {/* ToolBox */}
-          <ToolBox />
-
-          {/* SheetBox passes setLayer to allow switching layers */}
-          <SheetBox setLayer={setLayer} />
         </div>
       </div>
     </div>
