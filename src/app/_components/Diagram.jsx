@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Stage, Layer, Line, Rect, Text } from "react-konva";
 
 const GridBackground = ({ width, height, cellSize, offsetX, offsetY, padding }) => {
@@ -46,12 +45,8 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
   const minorTickSize = 8;
   const fontSize = 12;
 
-  // X-Axis Ruler (positive values only)
-  for (
-    let i = Math.ceil(offsetX / cellSize);
-    i <= Math.ceil((width + offsetX) / cellSize);
-    i++
-  ) {
+  // X-Axis Ruler (only positive values)
+  for (let i = Math.max(0, Math.ceil(offsetX / cellSize)); i <= Math.ceil((width + offsetX) / cellSize); i++) {
     const position = margin.left + i * cellSize - offsetX;
     if (position < padding.left || position > width - padding.right) continue;
 
@@ -102,12 +97,8 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
     }
   }
 
-  // Y-Axis Ruler (positive values only)
-  for (
-    let i = Math.ceil(offsetY / cellSize);
-    i <= Math.ceil((height + offsetY) / cellSize);
-    i++
-  ) {
+  // Y-Axis Ruler (only positive values)
+  for (let i = Math.max(0, Math.ceil(offsetY / cellSize)); i <= Math.ceil((height + offsetY) / cellSize); i++) {
     const position = height - margin.bottom - i * cellSize + offsetY;
     if (position < padding.top || position > height - padding.bottom) continue;
 
@@ -174,6 +165,10 @@ const Diagram = () => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const [showMap, setShowMap] = useState(false);
+  const [zoom, setZoom] = useState(1); // Added zoom state
+
+  const mapContainerRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -201,15 +196,22 @@ const Diagram = () => {
     const dx = clientX - lastPos.x;
     const dy = clientY - lastPos.y;
 
+    // Constrain the offset to not go below 0
     setOffset((prev) => ({
-      x: prev.x - dx,
-      y: prev.y - dy,
+      x: Math.max(prev.x - dx, 0),
+      y: Math.max(prev.y - dy, 0),
     }));
     setLastPos({ x: clientX, y: clientY });
   };
 
   const handleMouseUp = () => {
     setDragging(false);
+  };
+
+  const handleWheel = (e) => {
+    e.evt.preventDefault(); // Correct event handling
+    const scaleAmount = e.evt.deltaY > 0 ? 0.9 : 1.1;
+    setZoom((prevZoom) => Math.max(0.5, Math.min(prevZoom * scaleAmount, 3)));
   };
 
   const { width, height } = windowSize;
@@ -230,39 +232,72 @@ const Diagram = () => {
   };
 
   return (
-    <Stage
-      width={width}
-      height={height}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
-      {/* Background Layer */}
-      <Layer>
-        <Rect width={width} height={height} fill="#e3f2c1" />
-        <GridBackground
-          width={width}
-          height={height}
-          cellSize={cellSize}
-          offsetX={offset.x}
-          offsetY={offset.y}
-          padding={padding}
-        />
-      </Layer>
+    <>
+      <button
+        onClick={() => setShowMap((prev) => !prev)}
+        style={{ position: "absolute", top: 10, left: 10, zIndex: 1000 }}
+      >
+        {showMap ? "Show Grid" : "Show Map"}
+      </button>
 
-      {/* Ruler Layer */}
-      <Layer>
-        <AxisRuler
-          width={width}
-          height={height}
-          cellSize={cellSize}
-          margin={margin}
-          offsetX={offset.x}
-          offsetY={offset.y}
-          padding={padding}
-        />
-      </Layer>
-    </Stage>
+      {showMap && (
+        <div
+          ref={mapContainerRef}
+          style={{
+            width: width - padding.left - padding.right,
+            height: height - padding.top - padding.bottom,
+            position: "absolute",
+            top: padding.top,
+            left: padding.left,
+            zIndex: -1,
+            cursor: "move",
+          }}
+        >
+          <iframe
+            width="100%"
+            height="100%"
+            src="https://www.google.com/maps/embed?pb=!1m24!1m12!1m3!1d31672.422981306725!2d76.60007622135552!3d28.89633931875722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m9!3e3!4m3!3m2!1d28.8933157!2d76.6055238!4m3!3m2!1d28.893656!2d76.6116524!5e0!3m2!1sen!2sin!4v1737366128096!5m2!1sen!2sin"
+            style={{ border: 0 }}
+            allowFullScreen={true}
+            loading="lazy"
+          ></iframe>
+        </div>
+      )}
+
+      <Stage
+        width={width}
+        height={height}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onWheel={handleWheel} // Added onWheel handler
+      >
+        {!showMap && (
+          <Layer>
+            <Rect width={width} height={height} fill="#e3f2c1" />
+            <GridBackground
+              width={width}
+              height={height}
+              cellSize={cellSize}
+              offsetX={offset.x}
+              offsetY={offset.y}
+              padding={padding}
+            />
+          </Layer>
+        )}
+        <Layer>
+          <AxisRuler
+            width={width}
+            height={height}
+            cellSize={cellSize}
+            margin={margin}
+            offsetX={offset.x}
+            offsetY={offset.y}
+            padding={padding}
+          />
+        </Layer>
+      </Stage>
+    </>
   );
 };
 
