@@ -1,43 +1,52 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Stage, Layer, Line, Rect, Text } from "react-konva";
+import { Stage, Layer, Line, Rect, Text, Circle } from "react-konva";
 
-const GridBackground = ({ width, height, cellSize, offsetX, offsetY, padding }) => {
+const GridBackground = ({
+  width,
+  height,
+  cellSize,
+  offsetX,
+  offsetY,
+}) => {
   const lines = [];
 
   // Vertical lines
   for (let i = 0; i < width + cellSize; i += cellSize) {
     const x = i - (offsetX % cellSize);
-    if (x >= padding.left && x <= width - padding.right) {
-      lines.push(
-        <Line
-          key={`v-${x}`}
-          points={[x, padding.top, x, height - padding.bottom]}
-          stroke="#ccc"
-          strokeWidth={1}
-        />
-      );
-    }
+    lines.push(
+      <Line
+        key={`v-${x}`}
+        points={[x, 0, x, height]}
+        stroke="#ccc"
+        strokeWidth={1}
+      />
+    );
   }
 
   // Horizontal lines
   for (let i = 0; i < height + cellSize; i += cellSize) {
     const y = i - (offsetY % cellSize);
-    if (y >= padding.top && y <= height - padding.bottom) {
-      lines.push(
-        <Line
-          key={`h-${y}`}
-          points={[padding.left, y, width - padding.right, y]}
-          stroke="#ccc"
-          strokeWidth={1}
-        />
-      );
-    }
+    lines.push(
+      <Line
+        key={`h-${y}`}
+        points={[0, y, width, y]}
+        stroke="#ccc"
+        strokeWidth={1}
+      />
+    );
   }
 
   return <>{lines}</>;
 };
 
-const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding }) => {
+const AxisRuler = ({
+  width,
+  height,
+  cellSize,
+  margin,
+  offsetX,
+  offsetY,
+}) => {
   const xAxis = [];
   const yAxis = [];
   const majorTickSize = 20;
@@ -46,11 +55,14 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
   const fontSize = 12;
 
   // X-Axis Ruler (only positive values)
-  for (let i = Math.max(0, Math.ceil(offsetX / cellSize)); i <= Math.ceil((width + offsetX) / cellSize); i++) {
+  for (
+    let i = Math.max(0, Math.ceil(offsetX / cellSize));
+    i <= Math.ceil((width + offsetX) / cellSize);
+    i++
+  ) {
     const position = margin.left + i * cellSize - offsetX;
-    if (position < padding.left || position > width - padding.right) continue;
 
-    // Major Tick
+    // Major Tick & Label
     if (i % 10 === 0) {
       xAxis.push(
         <React.Fragment key={`x-major-${i}`}>
@@ -98,11 +110,14 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
   }
 
   // Y-Axis Ruler (only positive values)
-  for (let i = Math.max(0, Math.ceil(offsetY / cellSize)); i <= Math.ceil((height + offsetY) / cellSize); i++) {
+  for (
+    let i = Math.max(0, Math.ceil(offsetY / cellSize));
+    i <= Math.ceil((height + offsetY) / cellSize);
+    i++
+  ) {
     const position = height - margin.bottom - i * cellSize + offsetY;
-    if (position < padding.top || position > height - padding.bottom) continue;
 
-    // Major Tick
+    // Major Tick & Label
     if (i % 10 === 0) {
       yAxis.push(
         <React.Fragment key={`y-major-${i}`}>
@@ -158,6 +173,7 @@ const AxisRuler = ({ width, height, cellSize, margin, offsetX, offsetY, padding 
 };
 
 const Diagram = () => {
+  // State for window dimensions, panning offset, and zooming
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -166,7 +182,18 @@ const Diagram = () => {
   const [dragging, setDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
   const [showMap, setShowMap] = useState(false);
-  const [zoom, setZoom] = useState(1); // Added zoom state
+  const [zoom, setZoom] = useState(1);
+
+  // States for drawing lines
+  const [drawnLines, setDrawnLines] = useState([]);
+  const [lineHistory, setLineHistory] = useState([]);
+
+  // State for coordinate display mode
+  const [showCoordinates, setShowCoordinates] = useState(false);
+
+  // State for straight line drawing
+  const [startPoint, setStartPoint] = useState(null);
+  const [endPoint, setEndPoint] = useState(null);
 
   const mapContainerRef = useRef(null);
 
@@ -185,33 +212,84 @@ const Diagram = () => {
     };
   }, []);
 
+  // Combined event handlers for panning and drawing.
   const handleMouseDown = (e) => {
-    setDragging(true);
-    setLastPos({ x: e.evt.clientX, y: e.evt.clientY });
+    if (showCoordinates) {
+      // Check if clicking on the end circle of an existing line
+      const pos = e.target.getStage().getPointerPosition();
+      const adjustedPos = { x: pos.x - offset.x, y: pos.y - offset.y };
+      let clickedOnEndCircle = false;
+
+      drawnLines.forEach((line) => {
+        const endX = line[2];
+        const endY = line[3];
+        const distance = Math.sqrt(
+          Math.pow(adjustedPos.x - endX, 2) + Math.pow(adjustedPos.y - endY, 2)
+        );
+        if (distance < 10) {
+          setStartPoint({ x: endX, y: endY });
+          setEndPoint({ x: endX, y: endY });
+          clickedOnEndCircle = true;
+        }
+      });
+
+      if (!clickedOnEndCircle) {
+        // Begin straight line drawing
+        setStartPoint(adjustedPos);
+        setEndPoint(adjustedPos);
+      }
+    } else {
+      // Begin panning
+      setDragging(true);
+      setLastPos({ x: e.evt.clientX, y: e.evt.clientY });
+    }
   };
 
   const handleMouseMove = (e) => {
-    if (!dragging) return;
-    const { clientX, clientY } = e.evt;
-    const dx = clientX - lastPos.x;
-    const dy = clientY - lastPos.y;
-
-    // Constrain the offset to not go below 0
-    setOffset((prev) => ({
-      x: Math.max(prev.x - dx, 0),
-      y: Math.max(prev.y - dy, 0),
-    }));
-    setLastPos({ x: clientX, y: clientY });
+    if (dragging) {
+      // Panning logic
+      const { clientX, clientY } = e.evt;
+      const dx = clientX - lastPos.x;
+      const dy = clientY - lastPos.y;
+      setOffset((prev) => ({
+        x: Math.max(prev.x - dx, 0),
+        y: Math.max(prev.y - dy, 0),
+      }));
+      setLastPos({ x: clientX, y: clientY });
+    } else if (showCoordinates && startPoint) {
+      // Update the end point of the straight line
+      const pos = e.target.getStage().getPointerPosition();
+      setEndPoint({ x: Math.max(pos.x - offset.x, 0), y: Math.max(pos.y - offset.y, 0) });
+    }
   };
 
-  const handleMouseUp = () => {
-    setDragging(false);
+  const handleMouseUp = (e) => {
+    if (showCoordinates && startPoint) {
+      // Finalize the straight line
+      const pos = e.target.getStage().getPointerPosition();
+      setDrawnLines((prev) => [
+        ...prev,
+        [startPoint.x, startPoint.y, Math.max(pos.x - offset.x, 0), Math.max(pos.y - offset.y, 0)],
+      ]);
+      setStartPoint(null);
+      setEndPoint(null);
+    } else {
+      setDragging(false);
+    }
   };
 
   const handleWheel = (e) => {
-    e.evt.preventDefault(); // Correct event handling
+    e.evt.preventDefault();
     const scaleAmount = e.evt.deltaY > 0 ? 0.9 : 1.1;
     setZoom((prevZoom) => Math.max(0.5, Math.min(prevZoom * scaleAmount, 3)));
+  };
+
+  const handleUndo = () => {
+    setDrawnLines((prev) => {
+      const newLines = prev.slice(0, -1);
+      setLineHistory(newLines);
+      return newLines;
+    });
   };
 
   const { width, height } = windowSize;
@@ -224,15 +302,9 @@ const Diagram = () => {
     bottom: 50,
   };
 
-  const padding = {
-    left: 60,
-    right: 60,
-    top: 60,
-    bottom: 60,
-  };
-
   return (
     <>
+      {/* Button to toggle between map and grid */}
       <button
         onClick={() => setShowMap((prev) => !prev)}
         style={{ position: "absolute", top: 10, left: 10, zIndex: 1000 }}
@@ -240,15 +312,33 @@ const Diagram = () => {
         {showMap ? "Show Grid" : "Show Map"}
       </button>
 
+      {/* Button to undo the last drawn line */}
+      <button
+        onClick={handleUndo}
+        style={{ position: "absolute", top: 40, left: 10, zIndex: 1000 }}
+        disabled={drawnLines.length === 0}
+      >
+        Undo
+      </button>
+
+      {/* Button to toggle coordinate display mode */}
+      <button
+        onClick={() => setShowCoordinates((prev) => !prev)}
+        style={{ position: "absolute", top: 70, left: 10, zIndex: 1000 }}
+      >
+        {showCoordinates ? "Hide Coordinates" : "Show Coordinates"}
+      </button>
+
+      {/* Google Maps iframe (if toggled on) */}
       {showMap && (
         <div
           ref={mapContainerRef}
           style={{
-            width: width - padding.left - padding.right,
-            height: height - padding.top - padding.bottom,
+            width: width - margin.left - margin.right,
+            height: height - margin.top - margin.bottom,
             position: "absolute",
-            top: padding.top,
-            left: padding.left,
+            top: margin.top,
+            left: margin.left,
             zIndex: -1,
             cursor: "move",
           }}
@@ -270,22 +360,87 @@ const Diagram = () => {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onWheel={handleWheel} // Added onWheel handler
+        onWheel={handleWheel}
       >
-        {!showMap && (
-          <Layer>
-            <Rect width={width} height={height} fill="#e3f2c1" />
-            <GridBackground
-              width={width}
-              height={height}
-              cellSize={cellSize}
-              offsetX={offset.x}
-              offsetY={offset.y}
-              padding={padding}
-            />
-          </Layer>
-        )}
         <Layer>
+          {/* Background Grid Layer (only visible when map is off) */}
+          {!showMap && (
+            <>
+              <Rect width={width} height={height} fill="#e3f2c1" />
+              <GridBackground
+                width={width}
+                height={height}
+                cellSize={cellSize}
+                offsetX={offset.x}
+                offsetY={offset.y}
+              />
+            </>
+          )}
+
+          {/* Layer for drawn lines */}
+          {drawnLines.map((line, i) => (
+            <React.Fragment key={i}>
+              <Line
+                points={line.map((point, index) =>
+                  index % 2 === 0 ? point + offset.x : point + offset.y
+                )}
+                stroke="red"
+                strokeWidth={2}
+                lineCap="round"
+                lineJoin="round"
+              />
+              <Circle x={line[0] + offset.x} y={line[1] + offset.y} radius={5} fill="blue" />
+              <Circle x={line[2] + offset.x} y={line[3] + offset.y} radius={5} fill="blue" />
+              <Text
+                text={`(${Math.round(line[0] / cellSize)}, ${Math.round(line[1] / cellSize)})`}
+                x={line[0] + offset.x}
+                y={line[1] + offset.y}
+                fontSize={12}
+                fill="blue"
+              />
+              <Text
+                text={`(${Math.round(line[2] / cellSize)}, ${Math.round(line[3] / cellSize)})`}
+                x={line[2] + offset.x}
+                y={line[3] + offset.y}
+                fontSize={12}
+                fill="blue"
+              />
+            </React.Fragment>
+          ))}
+          {startPoint && endPoint && (
+            <React.Fragment>
+              <Line
+                points={[
+                  startPoint.x + offset.x,
+                  startPoint.y + offset.y,
+                  endPoint.x + offset.x,
+                  endPoint.y + offset.y,
+                ]}
+                stroke="red"
+                strokeWidth={2}
+                lineCap="round"
+                lineJoin="round"
+              />
+              <Circle x={startPoint.x + offset.x} y={startPoint.y + offset.y} radius={5} fill="blue" />
+              <Circle x={endPoint.x + offset.x} y={endPoint.y + offset.y} radius={5} fill="blue" />
+              <Text
+                text={`(${Math.round(startPoint.x / cellSize)}, ${Math.round(startPoint.y / cellSize)})`}
+                x={startPoint.x + offset.x}
+                y={startPoint.y + offset.y}
+                fontSize={12}
+                fill="blue"
+              />
+              <Text
+                text={`(${Math.round(endPoint.x / cellSize)}, ${Math.round(endPoint.y / cellSize)})`}
+                x={endPoint.x + offset.x}
+                y={endPoint.y + offset.y}
+                fontSize={12}
+                fill="blue"
+              />
+            </React.Fragment>
+          )}
+
+          {/* Axis Ruler Layer */}
           <AxisRuler
             width={width}
             height={height}
@@ -293,8 +448,23 @@ const Diagram = () => {
             margin={margin}
             offsetX={offset.x}
             offsetY={offset.y}
-            padding={padding}
           />
+
+          {/* Coordinate Display Layer */}
+          {showCoordinates && (
+            <>
+              {drawnLines.map((line, i) => (
+                <Text
+                  key={`coord-${i}`}
+                  text={`(${Math.round(line[0] / cellSize)}, ${Math.round(line[1] / cellSize)})`}
+                  x={line[0] + offset.x}
+                  y={line[1] + offset.y}
+                  fontSize={12}
+                  fill="blue"
+                />
+              ))}
+            </>
+          )}
         </Layer>
       </Stage>
     </>

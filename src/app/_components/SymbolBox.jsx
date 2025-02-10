@@ -1,52 +1,42 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaMinusCircle, FaPlusCircle, FaTrash, FaEdit } from "react-icons/fa";
-import { CreateButton } from "./CreateButton";
+import { FaMinusCircle, FaPlusCircle, FaTrash } from "react-icons/fa";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { iconOptions, colorOptions, textureOptions } from "@/utils/options";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Symbol options: Water and Gas
+const symbolOptions = [
+  { name: "Water", symbol: "+", color: "blue" },
+  { name: "Gas", symbol: "X", color: "black" },
+];
 
 const SymbolBox = () => {
   const [dialogStatus, setDialogStatus] = useState(false);
-  const [color, setColor] = useState("");
-  const [texture, setTexture] = useState("");
-  const [pipesName, setPipesName] = useState("");
-  const [icon, setIcon] = useState("");
-  const [pipeSize, setPipeSize] = useState("");
+  const [selectedSymbol, setSelectedSymbol] = useState(symbolOptions[0]); // Default: Water
+  const [pipeSize, setPipeSize] = useState("1");
   const [pipesData, setPipesData] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
 
   useEffect(() => {
-    // Retrieve data from localStorage on component mount
     const storedData = localStorage.getItem("pipesData");
-    if (storedData) {
-      setPipesData(JSON.parse(storedData));
-    }
+    if (storedData) setPipesData(JSON.parse(storedData));
   }, []);
 
   useEffect(() => {
-    // Save data to localStorage whenever pipesData changes
     localStorage.setItem("pipesData", JSON.stringify(pipesData));
   }, [pipesData]);
 
-  const openDialogbox = () => {
-    setDialogStatus((prev) => !prev);
-  };
+  const openDialogbox = () => setDialogStatus((prev) => !prev);
 
-  // const handleEdit = (index) => {
-  //   const item = pipesData[index];
-  //   setColor(item.color);
-  //   setPipesName(item.pipesName);
-  //   setIcon(item.icon);
-  //   setPipeSize(item.pipeSize);
-  //   setEditingIndex(index);
-  // };
+  const handleAddSymbol = () => {
+    const newSymbol = {
+      name: selectedSymbol.name,
+      symbol: selectedSymbol.symbol,
+      color: selectedSymbol.color,
+      pipeSize,
+    };
+    setPipesData([...pipesData, newSymbol]);
+  };
 
   const handleDelete = (index) => {
     setPipesData((prevData) => prevData.filter((_, i) => i !== index));
@@ -68,85 +58,72 @@ const SymbolBox = () => {
             <p>{dialogStatus ? "Close" : "Add Symbol"}</p>
           </TooltipContent>
         </Tooltip>
-        {dialogStatus && (
-          <div className="absolute right-0 top-12 bg-[#1f1f1f7a] border rounded-lg shadow-2xl p-2 w-60">
-            <div className="mb-2 flex justify-end">
-              <CreateButton
-                setColor={setColor}
-                setName={setPipesName}
-                setSize={setPipeSize}
-                setIcon={setIcon}
-                setPipesData={setPipesData}
-                editingIndex={editingIndex}
-                setEditingIndex={setEditingIndex}
-                setTexture={setTexture}
-              />
-            </div>
-            <ScrollArea className="h-64 w-full rounded-md">
-              <div className="p-1 space-y-2">
-                {pipesData.map((item, index) => {
-                  const IconComponent = iconOptions.find(
-                    (option) => option.value === item.icon
-                  )?.component;
 
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between bg-gray-50 rounded-md p-2 transition-all duration-200 hover:bg-gray-100"
-                    >
-                      <div className="flex items-center space-x-4">
-                        {IconComponent && (
-                          <IconComponent
-                            className="w-5 h-5"
-                            style={{ color: item.color }}
-                          />
-                        )}
-                        <div>
-                          <p className="font-medium text-gray-800 capitalize">
-                            {item.pipesName}
-                          </p>
-                          <p className="text-sm text-gray-500 font-medium">
-                            {item.pipeSize} mtr
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 font-medium">
-                            {item.texture}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Tooltip>
-                          {/* <TooltipTrigger asChild>
-                            <button
-                              className="text-blue-500 hover:text-blue-600"
-                              onClick={() => handleEdit(index)}
-                            >
-                              <FaEdit className="w-4 h-4" />
-                            </button>
-                          </TooltipTrigger> */}
-                          <TooltipContent>
-                            <p>Edit</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              className="text-red-500 hover:text-red-600"
-                              onClick={() => handleDelete(index)}
-                            >
-                              <FaTrash className="w-4 h-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
+        {dialogStatus && (
+          <div className="absolute right-0 top-12 bg-[#1f1f1f7a] border rounded-lg shadow-2xl p-3 w-64">
+            {/* Symbol Selector */}
+            <label className="text-white text-sm">Select Symbol:</label>
+            <select
+              className="w-full p-2 my-1 border rounded-md"
+              value={selectedSymbol.name}
+              onChange={(e) => {
+                const chosen = symbolOptions.find((s) => s.name === e.target.value);
+                setSelectedSymbol(chosen);
+              }}
+            >
+              {symbolOptions.map((option) => (
+                <option key={option.name} value={option.name}>
+                  {option.name} ({option.symbol})
+                </option>
+              ))}
+            </select>
+
+            {/* Pipe Size Input */}
+            <label className="text-white text-sm">Pipe Size (mtr):</label>
+            <input
+              type="number"
+              className="w-full p-2 my-1 border rounded-md"
+              value={pipeSize}
+              onChange={(e) => setPipeSize(e.target.value)}
+              min="1"
+            />
+
+            {/* Add Button */}
+            <button
+              className="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-md"
+              onClick={handleAddSymbol}
+            >
+              Add Symbol
+            </button>
+
+            {/* Symbols List */}
+            <ScrollArea className="h-40 mt-3">
+              {pipesData.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center bg-gray-50 rounded-md p-2 my-1"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg font-bold" style={{ color: item.color }}>
+                      {item.symbol}
+                    </span>
+                    <div>
+                      <p className="font-medium text-gray-800">{item.name}</p>
+                      <p className="text-sm text-gray-500">{item.pipeSize} mtr</p>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="text-red-500 hover:text-red-600" onClick={() => handleDelete(index)}>
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              ))}
             </ScrollArea>
           </div>
         )}
